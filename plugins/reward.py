@@ -1,3 +1,12 @@
+"""Functions for calculating the reward and done flag of the 
+state transitions
+
+episode is terminated when the target altitude layer is reached
+reward is a penalty of:
+
+ -0.25 if currently in intrusion
+  0 otherwise"""
+
 from bluesky import core, stack, traf, sim, tools, scr
 from bluesky.tools.aero import ft, nm, fpm, Rearth, kts
 import math as m
@@ -6,16 +15,24 @@ import bluesky as bs
 
 
 def calc_reward(state_,logstate):
-    reward_a, done_a = calc_reward_a(state_)
-    reward_b, done_b = calc_reward_b(state_,logstate)
+    """ Calculate the reward and determine the done flag associated with 
+    the current state
     
-    done                = ((done_a * done_b) -  1) * -1 
+    input: new state, new logstate
+    output: reward, done"""
+
+    done = check_done(state_)
+    reward = calc_reward(logstate)
     
-    current_reward      = reward_a + reward_b
+    return reward, done
     
-    return current_reward, done
+def check_done(state_):
+    """ check if the episode is done by evaluating if the aircraft 
+    has reached the target layer
     
-def calc_reward_a(state_):
+    input: state_
+    output: doneflag """
+
     headinglayers       = bs.settings.num_headinglayers
     
     basealtitude        = bs.settings.lower_alt
@@ -23,20 +40,20 @@ def calc_reward_a(state_):
     
     altperlayer         = (maxaltitude - basealtitude)/(headinglayers)
     
-    if state_[0] < altperlayer:
-        return 0, 0
+    if state_[0] < altperlayer: # state_[0] is the altitude difference with the target altitude (non-normalized state vector)
+        return 1
     else:
-        return 0, 1
+        return 0
 
-def calc_reward_b(state_,logstate):
-    n_aircraft = bs.settings.num_aircraft
+def calc_reward(logstate):
+    """ calculate the reward for the state transition
     
-    state_start = 3
-    state_per_ac = 8
+    input: logstate
+    output: reward """
 
     reward = 0
 
-    if logstate[5] == 1:
+    if logstate[5] == 1: # logstate[5] is the intrusion boolean variable
         reward += -0.25
             
-    return reward, 1
+    return reward
