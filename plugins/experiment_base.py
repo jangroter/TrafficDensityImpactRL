@@ -75,9 +75,9 @@ class Experiment_base(core.Entity):
 
             self.confint = [] # callsigns of all current and old intruders that are still active
     
-    # Set default variables when aircraft are created
-    # Assigns values to the empty traffic arrays defined in __init__()
     def create(self, n=1):
+        # Set default variables when aircraft are created
+        # Assigns values to the empty traffic arrays defined in __init__()
         super().create(n)
         
         self.insdel[-n:] = False # Aircraft should not be deleted
@@ -198,7 +198,18 @@ class Experiment_base(core.Entity):
                 self.rewards = np.append(self.rewards, self.totreward[delcontr])
                 self.not_finished += len(delcontr)
             traf.delete(delidx)
-            
+
+    def reset_action(self,acid,ac_idx):
+        if not self.confint[ac_idx]:
+            stack.stack(f'SPD {acid} {default_speed}')
+
+            if self.targetalt[ac_idx]*ft < traf.alt[ac_idx]:
+                target = 0               
+            else:
+                target = 5000
+                
+            stack.stack(f'ALT {acid} {target} {default_vz}')
+
     def log(self,logstate,action,acid,ac_idx):
         """ Function used for logging the data"""
 
@@ -218,7 +229,6 @@ class Experiment_base(core.Entity):
 
             self.lognumber += 1
             self.init_logfile()
-
 
     def init_logfile(self):
         """ Initialize logfile with the correct header / column names"""
