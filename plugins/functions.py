@@ -1,9 +1,6 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Mon May 17 11:34:05 2021
+""" Implementation of some basic functions shared 
+with the other plugins used for the research"""
 
-@author: Jan
-"""
 from bluesky import core, stack, traf, sim, tools, scr
 from bluesky.tools.aero import ft, nm, fpm, Rearth, kts
 import math as m
@@ -14,6 +11,11 @@ import random
 
 
 def haversine(lat1,lon1,lat2,lon2):
+    """ basic haversine formula for distance computation between 2 coordinates
+    input: lat1, lon1, lat2, lon2 (degrees)
+    output: distance (meters)
+    """
+
     R = Rearth
     dLat = m.radians(lat2 - lat1)
     dLon = m.radians(lon2 - lon1)
@@ -26,12 +28,18 @@ def haversine(lat1,lon1,lat2,lon2):
     return R * c  
 
 def bearing(lat1,lon1,lat2,lon2):
-    #return m.atan2(m.cos(lat1)*m.sin(lat2)-m.sin(lat1)*m.cos(lat2)*m.cos(lon2-lon1),\
-    #              m.sin(lon2-lon1)*m.cos(lat2))
+    """ Returns the bearing between two coordinates as calculated in the geo module
+    input: lat1, lon1, lat2, lon2 (degrees)
+    output: bearing (degrees)"""
+
     brg, _ = geo.kwikqdrdist(lat1, lon1, lat2, lon2)
     return brg
 
 def checkinbounds(lat,lon):
+    """ Checks if aircraft is inside delivery area using haversine and center of the experiment area
+    input: lat, lon of the aircraft (degrees)
+    output: boolean """
+
     circlelat = bs.settings.controlarea_lat
     circlelon = bs.settings.controlarea_lon
     
@@ -45,6 +53,11 @@ def checkinbounds(lat,lon):
         return False
        
 def get_targetalt(i):
+    """ Determine if aircraft has to change altitude layers
+    If yes: decide on altitude
+    input: index of AC in traffic array
+    output: target_altitude (feet), control boolean, layer index"""
+
     currentalt = traf.alt[i]
     
     givecommand = random.randint(1,100)
@@ -65,6 +78,10 @@ def get_targetalt(i):
         return currentalt, 0, layer
              
 def get_layerfromalt(alt):
+    """ Get current layer from altitude
+    input: altitude (meters)
+    output: layer (index)"""
+
     alt = alt / ft
     num_layers = bs.settings.num_headinglayers
     alt_per_layer = (bs.settings.upper_alt - bs.settings.lower_alt)/num_layers
@@ -74,6 +91,10 @@ def get_layerfromalt(alt):
     return layer
     
 def get_altfromlayer(layer):    
+    """ Get current altitude from layer index
+    input: layer index
+    output: altitude (feet)"""
+
     num_layers = bs.settings.num_headinglayers
     alt_per_layer = (bs.settings.upper_alt - bs.settings.lower_alt)/num_layers
     
@@ -82,6 +103,13 @@ def get_altfromlayer(layer):
     return alt
 
 def get_statesize():
+    """ Returns some state vector information based on the number 
+    of aircraft used in the state representation
+    input: 
+    output: state vector length, 
+            start index of intruder information, 
+            logstate vector length"""
+
     n_aircraft = bs.settings.num_aircraft
     state_start = 3
     state_per_ac = 8
@@ -93,6 +121,11 @@ def get_statesize():
     return state_size, state_start, logstate_size
 
 def normalize_state(state):
+    """ Normalize a state vector with the standard
+    deviation and mean as indicated in the normalize_vector.txt file.
+    Mean and std are obtained over 50.000 interactions from a 
+    random actor"""
+
     tempstate = state[:]
     normvec = np.loadtxt('normalize_vector.txt')
     n_aircraft = bs.settings.num_aircraft
