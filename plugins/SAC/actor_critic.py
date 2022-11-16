@@ -1,3 +1,7 @@
+""" Actor and Critic class used for the SAC algorithm
+Implementation based on the implementation of Kantologist:
+https://github.com/kantologist/multiagent-sac"""
+
 import torch.nn as nn
 import torch
 import torch.nn.functional as F

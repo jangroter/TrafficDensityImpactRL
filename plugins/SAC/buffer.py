@@ -1,3 +1,8 @@
+""" Memorybuffer class used for the SAC algorithm
+Implementation based on the implementation of Kantologist:
+https://github.com/kantologist/multiagent-sac"""
+
+
 from typing import Dict, List, Deque, Tuple
 from collections import deque
 import numpy as np

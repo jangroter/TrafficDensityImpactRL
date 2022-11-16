@@ -1,3 +1,7 @@
+""" SAC agent class used for the SAC algorithm
+Implementation based on the implementation of Kantologist:
+https://github.com/kantologist/multiagent-sac"""
+
 from math import gamma
 from typing import Dict, List, Tuple
 
