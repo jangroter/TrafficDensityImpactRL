@@ -1,11 +1,9 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Mon May 17 14:06:36 2021
+""" Functions related to the state vector.
+Main function: get_state(idx, target_alt) returns 
+the state vector associated with the aircraft 'idx' 
 
-This script creates the state vector for the DRL algorithm for experiment 0 and 1
-
-@author: Jan
-"""
+Used by all experiments for both action decisions and 
+logging purposes"""
 
 from bluesky import core, stack, traf, sim, tools, scr
 from bluesky.tools.aero import ft, nm, fpm, Rearth, kts
@@ -23,6 +21,13 @@ n_aircraft = bs.settings.num_aircraft
 num_headinglayers = bs.settings.num_headinglayers
 
 def get_state(idx, target_alt):
+    """ function that returns the state vector, logstate vector
+    and array containing the idx of the intruders associated
+    with the aircraft under 'idx'.
+
+    input: idx, target_alt (feet)
+    output: state (np.array), logstate (np.array), int_idx (np.array)"""
+
     state_size, statestart, logstate_size = fn.get_statesize()
     state = np.zeros(state_size) # Create state array of correct state length
     logstate = np.zeros(logstate_size)
@@ -40,6 +45,10 @@ def get_state(idx, target_alt):
     return state, logstate, int_idx
 
 def get_delta_heading(idx, num_headinglayers):
+    """ get the heading difference with the altitude layer
+    input: idx, num_headinlayers
+    output: heading difference (degrees)"""
+
     layer     = fn.get_layerfromalt(traf.alt[idx])
     hdglayer = layer*2*(360/num_headinglayers)
     if hdglayer >= 360:
@@ -49,6 +58,13 @@ def get_delta_heading(idx, num_headinglayers):
     return hdgdif
 
 def get_aircraftinbounds(idx, searchradius, searchlayers, target_alt):
+    """ generate a list of aircraft that are within the disk defined by
+    radius: searchradius and height: searchlayers centered at the 
+    aircraft denoted by idx 
+
+    input: idx, searchradius (meter), searchlayers (int), target_alt (feet)
+    output: list of potential intruder indices"""
+
     aircraftinbounds = []
     ownlayer    = fn.get_layerfromalt(traf.alt[idx])
     targetlayer = fn.get_layerfromalt(target_alt*ft)   
@@ -63,31 +79,50 @@ def get_aircraftinbounds(idx, searchradius, searchlayers, target_alt):
             else:
                 if intlayer in range(ownlayer, ownlayer + searchlayers):
                     include = True
-            distance_ij = haversine(traf.lat[idx],traf.lon[idx],traf.lat[j],traf.lon[j])
+            distance_ij = fn.haversine(traf.lat[idx],traf.lon[idx],traf.lat[j],traf.lon[j])
             if distance_ij < searchradius and include:
                 aircraftinbounds.append(j)
                 
     return aircraftinbounds
  
 def sort_aircraft(aircraftinbounds, idx, n_aircraft):
+    """ Sort the aircraft in bounds based on time till closest
+    point of approach and conflict boolean to have a priority.
+    
+    input: aircraftinbounds (list), idx, n_aircraft
+    output: sortedaircraft (list)"""
+
     ac_tdcpa = []
     for j in aircraftinbounds:
+        # calculate conflict parameters associated with ownship and intruder
         tcpa, tinconf, toutconf, dcpa, conflict = calc_tdcpa(idx, j)
+        # clip time till closest point of approach
         tcpa = min(tcpa, 600)
         temp = [j,tcpa,dcpa,conflict,tinconf,toutconf]
         ac_tdcpa.append(temp)
     ac_tdcpa = np.array(ac_tdcpa)
     
     if len(ac_tdcpa) > 0:
+        # only keep aircraft that have tcpa > 0 or are in conflict 
+        # e.g. remove aircraft that are moving away
         ac_tdcpa = ac_tdcpa[(ac_tdcpa[:,1]>=0)|(ac_tdcpa[:,3]==1)]
+        # sort on tcpa
         ac_tdcpa = ac_tdcpa[ac_tdcpa[:,1].argsort()]
+        # sort on conflict
         sortedaircraft = ac_tdcpa[(ac_tdcpa[:,3]*-1).argsort()]
+        # only return n_aircraft most important elements
         sortedaircraft = sortedaircraft[:n_aircraft]
     else:
         sortedaircraft = []
     return sortedaircraft
                 
 def append_ac_state(startnum, state, n_aircraft, idx, sortedaircraft, logstate):
+    """ function to append the information of the intruding aircraft
+    to the remainder of that state and logstate arrays
+    
+    input: startnum, state, n_aircraft, idx, sortedaircraft, logstate
+    output: state, logstate, int_idx"""
+    
     counter = 1
     counterlog = 1
     acid = [None] * n_aircraft
@@ -104,8 +139,8 @@ def append_ac_state(startnum, state, n_aircraft, idx, sortedaircraft, logstate):
         conflict = sortedaircraft[i,3]
 
         du, dv = calc_relvel_ownshipframe(idx,j)
-        dis = haversine(traf.lat[idx],traf.lon[idx], traf.lat[j],traf.lon[j])
-        brg = bearing(traf.lat[idx],traf.lon[idx], traf.lat[j],traf.lon[j])
+        dis = fn.haversine(traf.lat[idx],traf.lon[idx], traf.lat[j],traf.lon[j])
+        brg = fn.bearing(traf.lat[idx],traf.lon[idx], traf.lat[j],traf.lon[j])
 
         brgrad = np.radians(brg)
         hdg = m.radians(traf.hdg[idx])
@@ -131,45 +166,29 @@ def append_ac_state(startnum, state, n_aircraft, idx, sortedaircraft, logstate):
         counterlog += len(templogstate)
 
     return state, logstate, int_idx
-    
-# Haversine formula which return the distance between 2 lat,lon coordinates
-def haversine(lat1,lon1,lat2,lon2):
-    R = Rearth
 
-    dLat = m.radians(lat2 - lat1)
-    dLon = m.radians(lon2 - lon1)
-    lat1 = m.radians(lat1)
-    lat2 = m.radians(lat2)
- 
-    a = m.sin(dLat/2)**2 + m.cos(lat1)*m.cos(lat2)*m.sin(dLon/2)**2
-    c = 2*m.asin(m.sqrt(a))
-
-    return R * c   
-
-def bearing(lat1,lon1,lat2,lon2):
-    #return m.atan2(m.cos(lat1)*m.sin(lat2)-m.sin(lat1)*m.cos(lat2)*m.cos(lon2-lon1),\
-    #              m.sin(lon2-lon1)*m.cos(lat2))
-    brg, dist   = geo.kwikqdrdist(lat1, lon1, lat2, lon2)
-    return brg
-    
 def calc_tdcpa(own_idx, int_idx):
+    """ Calculate the time till and distance at closest 
+    point of approach between 2 aircraft
+    
+    input: own_idx, int_idx
+    output: tcpa (seconds), tinconf (seconds), toutconf (seconds), dcpa (meters), conflict (boolean)"""
+
     horconf = 0
     verconf = 0  
 
     conflict    = 0     
+
     # Horizontal conflict calculations
     dvx, dvy = calc_relvel_cartesian(own_idx, int_idx)
     
-    dis     = haversine(traf.lat[own_idx],traf.lon[own_idx], traf.lat[int_idx],traf.lon[int_idx])
-    brg     = bearing(traf.lat[own_idx],traf.lon[own_idx], traf.lat[int_idx],traf.lon[int_idx])
+    dis     = fn.haversine(traf.lat[own_idx],traf.lon[own_idx], traf.lat[int_idx],traf.lon[int_idx])
+    brg     = fn.bearing(traf.lat[own_idx],traf.lon[own_idx], traf.lat[int_idx],traf.lon[int_idx])
     
     brgrad = np.radians(brg)
     dx = dis * np.sin(brgrad) 
     dy = dis * np.cos(brgrad)  
 
-    # print('own dx,dy:',dx,dy)
-    # print('own dxv,dvy:',dvx,dvy)
-    
     dv2 = dvx * dvx + dvy * dvy
     vrel = np.sqrt(dv2)
     
@@ -178,8 +197,6 @@ def calc_tdcpa(own_idx, int_idx):
     
     tcpa = -(dvx * dx + dvy * dy) / dv2
     dcpa = m.sqrt(abs(dis * dis - tcpa * tcpa * dv2))
-
-    # print('own tcpa:', tcpa)
     
     pzradius = bs.settings.asas_pzr * nm
     
@@ -198,6 +215,7 @@ def calc_tdcpa(own_idx, int_idx):
         
         tinhor = 0
         touthor = 0
+
     # Vertical conflict calculations
     pzalt   = bs.settings.asas_pzh * ft
     
@@ -245,6 +263,12 @@ def calc_tdcpa(own_idx, int_idx):
     return tcpa, tinconf, toutconf, dcpa, conflict
 
 def calc_relvel_cartesian(own_idx,int_idx):
+    """calculate relative velocity between own and intruder 
+    in cartesian reference frame
+    
+    input: own_idx, int_idx
+    output: dvx (m/s), dvy (m/s)"""
+
     own_heading = m.radians(traf.hdg[own_idx])
     int_heading = m.radians(traf.hdg[int_idx])
     
@@ -260,6 +284,12 @@ def calc_relvel_cartesian(own_idx,int_idx):
     return dvx, dvy
     
 def calc_relvel_ownshipframe(own_idx,int_idx):
+    """calculate relative velocity between own and intruder 
+    in ownship heading reference frame
+    
+    input: own_idx, int_idx
+    output: du (m/s), dv (m/s)"""
+    
     own_heading = m.radians(traf.hdg[own_idx])
     int_heading = m.radians(traf.hdg[int_idx])
     
@@ -269,10 +299,15 @@ def calc_relvel_ownshipframe(own_idx,int_idx):
     return du, dv
 
 def get_tcpa(own_idx, int_idx):
+    """ Determine time till closest point of approach between 2 aircraft
+    
+    input: own_idx, int_idx
+    output: tcpa (seconds)"""
+    
     dvx, dvy = calc_relvel_cartesian(own_idx, int_idx)
     
-    dis     = haversine(traf.lat[own_idx],traf.lon[own_idx], traf.lat[int_idx],traf.lon[int_idx])
-    brg     = bearing(traf.lat[own_idx],traf.lon[own_idx], traf.lat[int_idx],traf.lon[int_idx])
+    dis     = fn.haversine(traf.lat[own_idx],traf.lon[own_idx], traf.lat[int_idx],traf.lon[int_idx])
+    brg     = fn.bearing(traf.lat[own_idx],traf.lon[own_idx], traf.lat[int_idx],traf.lon[int_idx])
     
     brgrad = np.radians(brg)
     dx = dis * np.sin(brgrad) 
