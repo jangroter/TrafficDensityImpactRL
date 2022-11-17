@@ -20,19 +20,19 @@ def get_spawnrate(density,mean_speed):
     return spawnrate
 
 # Default Values
-circlelat = bs.settings.controlarea_lat
-circlelon = bs.settings.controlarea_lon
-circlerad = bs.settings.controlarea_rad
+circlelat = pm.controlarea_lat
+circlelon = pm.controlarea_lon
+circlerad = pm.controlarea_rad
 
-speed = bs.settings.cruise_speed
-density = bs.settings.traffic_density 
+speed = pm.cruise_speed
+density = pm.traffic_density 
 spawnrate = get_spawnrate(density,speed)
 
-headinglayers = bs.settings.num_headinglayers
+headinglayers = pm.num_headinglayers
 degreesperheading = 2*(360/headinglayers)
 
-basealtitude = bs.settings.lower_alt
-maxaltitude = bs.settings.upper_alt
+basealtitude = pm.lower_alt
+maxaltitude = pm.upper_alt
 altperlayer = (maxaltitude - basealtitude)/(headinglayers)
 
 def init_plugin():   

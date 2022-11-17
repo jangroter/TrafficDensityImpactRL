@@ -33,10 +33,10 @@ def check_done(state_):
     input: state_
     output: doneflag """
 
-    headinglayers       = bs.settings.num_headinglayers
+    headinglayers       = pm.num_headinglayers
     
-    basealtitude        = bs.settings.lower_alt
-    maxaltitude         = bs.settings.upper_alt
+    basealtitude        = pm.lower_alt
+    maxaltitude         = pm.upper_alt
     
     altperlayer         = (maxaltitude - basealtitude)/(headinglayers)
     

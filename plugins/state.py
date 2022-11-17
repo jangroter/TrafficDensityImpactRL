@@ -16,9 +16,9 @@ import functions as fn
 ## State Settings ##
 searchradius = 0.3 * nm # m around ac searched
 searchlayers = 4 
-n_aircraft = bs.settings.num_aircraft
+n_aircraft = pm.num_aircraft
 
-num_headinglayers = bs.settings.num_headinglayers
+num_headinglayers = pm.num_headinglayers
 
 def get_state(idx, target_alt):
     """ function that returns the state vector, logstate vector
@@ -198,7 +198,7 @@ def calc_tdcpa(own_idx, int_idx):
     tcpa = -(dvx * dx + dvy * dy) / dv2
     dcpa = m.sqrt(abs(dis * dis - tcpa * tcpa * dv2))
     
-    pzradius = bs.settings.asas_pzr * nm
+    pzradius = pm.asas_pzr * nm
     
     if dcpa < pzradius:
         dcpa2   = dcpa * dcpa
@@ -217,7 +217,7 @@ def calc_tdcpa(own_idx, int_idx):
         touthor = 0
 
     # Vertical conflict calculations
-    pzalt   = bs.settings.asas_pzh * ft
+    pzalt   = pm.asas_pzh * ft
     
     dalt    = traf.alt[own_idx] - traf.alt[int_idx]
     dvs     = traf.vs[own_idx] - traf.vs[int_idx]

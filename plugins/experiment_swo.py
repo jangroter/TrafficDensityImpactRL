@@ -21,19 +21,21 @@ import math
 import pandas as pd
 from pathlib import Path
 
+import plugins.parameters as pm
+
 import plugins.SAC.sac_agent as sac
 import plugins.state as st
 import plugins.functions as fn
 import plugins.reward as rw
 
-timestep = 1.5
+timestep = pm.timestep
 
-default_vz = 2.5/fpm
-default_speed = 10/kts
+default_vz = pm.def_vz / fpm
+default_speed = pm.cruise_speed / kts
 
-onsetperiod = 600 # Number of seconds before experiment starts
+onsetperiod = pm.onsetperiod # Number of seconds before experiment starts
 
-n_aircraft = bs.settings.num_aircraft
+n_aircraft = pm.num_aircraft
 
 # Standard way of initializing Plugins in BlueSky
 def init_plugin():  
@@ -302,10 +304,10 @@ class Experiment_swo(core.Entity):
             lognumber = str(self.lognumber)    
 
             if self.lognumber == 0:
-                path = bs.settings.experiment_path + '\\' + bs.settings.experiment_name
+                path = pm.experiment_path + '/' + pm.experiment_name
                 Path(path).mkdir(parents=True, exist_ok=True)
 
-            logsavename = bs.settings.experiment_path +'\\'+ bs.settings.experiment_name+ '\\'+ 'logdata_'+lognumber+'.csv'
+            logsavename = Path(pm.experiment_path +'/'+ pm.experiment_name+ '/'+ 'logdata_'+lognumber+'.csv')
             self.logfile.to_csv(logsavename)
 
             self.lognumber += 1
@@ -333,8 +335,8 @@ class Experiment_swo(core.Entity):
 
         tcpa = st.get_tcpa(own_idx,int_idx)
 
-        pz = bs.settings.asas_pzr * nm
-        hpz = bs.settings.asas_pzh * ft
+        pz = pm.asas_pzr * nm
+        hpz = pm.asas_pzh * ft
         safety = bs.settings.asas_marh
         
         int_idx = int(int_idx)

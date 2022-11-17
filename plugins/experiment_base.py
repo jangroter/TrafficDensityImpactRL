@@ -17,20 +17,22 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 
+import plugins.parameters as pm
+
 import plugins.state as st
 import plugins.functions as fn
 import plugins.reward as rw
 
-timestep = 1.5
+timestep = pm.timestep
 state_size, _, _ = fn.get_statesize()
 action_size = 3
 
-default_vz = 2.5/fpm
-default_speed = 10/kts
+default_vz = pm.def_vz / fpm
+default_speed = pm.cruise_speed / kts
 
-onsetperiod = 600 # Number of seconds before experiment starts
+onsetperiod = pm.onsetperiod # Number of seconds before experiment starts
 
-n_aircraft = bs.settings.num_aircraft
+n_aircraft = pm.num_aircraft
 
 # Standard way of initializing Plugins in BlueSky
 def init_plugin():
@@ -220,10 +222,10 @@ class Experiment_base(core.Entity):
             lognumber = str(self.lognumber)    
 
             if self.lognumber == 0:
-                path = bs.settings.experiment_path + '\\' + bs.settings.experiment_name
+                path = pm.experiment_path + '/' +pm.experiment_name
                 Path(path).mkdir(parents=True, exist_ok=True)
 
-            logsavename = bs.settings.experiment_path +'\\'+ bs.settings.experiment_name+ '\\'+ 'logdata_'+lognumber+'.csv'
+            logsavename = Path(pm.experiment_path +'/'+ pm.experiment_name+ '/'+ 'logdata_'+lognumber+'.csv')
             self.logfile.to_csv(logsavename)
 
             self.lognumber += 1

@@ -8,7 +8,7 @@ import numpy as np
 from bluesky.tools import geo
 import bluesky as bs
 import random
-
+import plugins.parameters as pm
 
 def haversine(lat1,lon1,lat2,lon2):
     """ basic haversine formula for distance computation between 2 coordinates
@@ -40,10 +40,10 @@ def checkinbounds(lat,lon):
     input: lat, lon of the aircraft (degrees)
     output: boolean """
 
-    circlelat = bs.settings.controlarea_lat
-    circlelon = bs.settings.controlarea_lon
+    circlelat = pm.controlarea_lat
+    circlelon = pm.controlarea_lon
     
-    R = bs.settings.deliveryradius * nm
+    R = pm.deliveryradius * nm
     
     distance = haversine(lat,lon,circlelat,circlelon)
     
@@ -61,14 +61,14 @@ def get_targetalt(i):
     currentalt = traf.alt[i]
     
     givecommand = random.randint(1,100)
-    chance = bs.settings.altchangechance
+    chance = pm.altchangechance
       
     layer = get_layerfromalt(currentalt)
     if givecommand <= chance:              
-        if layer <=  bs.settings.num_headinglayers / 2:
-            new_layer = random.randint((bs.settings.num_headinglayers / 2)+1, bs.settings.num_headinglayers)
+        if layer <=  pm.num_headinglayers / 2:
+            new_layer = random.randint((pm.num_headinglayers / 2)+1, pm.num_headinglayers)
         else:
-            new_layer = random.randint(1, bs.settings.num_headinglayers / 2)
+            new_layer = random.randint(1, pm.num_headinglayers / 2)
             
         target_alt = get_altfromlayer(new_layer)
         
@@ -83,10 +83,10 @@ def get_layerfromalt(alt):
     output: layer (index)"""
 
     alt = alt / ft
-    num_layers = bs.settings.num_headinglayers
-    alt_per_layer = (bs.settings.upper_alt - bs.settings.lower_alt)/num_layers
+    num_layers = pm.num_headinglayers
+    alt_per_layer = (pm.upper_alt - pm.lower_alt)/num_layers
     
-    layer = int(((alt - bs.settings.lower_alt ) // alt_per_layer) + 1)
+    layer = int(((alt - pm.lower_alt ) // alt_per_layer) + 1)
     
     return layer
     
@@ -95,10 +95,10 @@ def get_altfromlayer(layer):
     input: layer index
     output: altitude (feet)"""
 
-    num_layers = bs.settings.num_headinglayers
-    alt_per_layer = (bs.settings.upper_alt - bs.settings.lower_alt)/num_layers
+    num_layers = pm.num_headinglayers
+    alt_per_layer = (pm.upper_alt - pm.lower_alt)/num_layers
     
-    alt = (layer-1) * alt_per_layer + bs.settings.lower_alt + alt_per_layer/4
+    alt = (layer-1) * alt_per_layer + pm.lower_alt + alt_per_layer/4
     
     return alt
 
@@ -110,7 +110,7 @@ def get_statesize():
             start index of intruder information, 
             logstate vector length"""
 
-    n_aircraft = bs.settings.num_aircraft
+    n_aircraft = pm.num_aircraft
     state_start = 3
     state_per_ac = 8
     logstate_per_ac = 11
@@ -128,7 +128,7 @@ def normalize_state(state):
 
     tempstate = state[:]
     normvec = np.loadtxt('normalize_vector.txt')
-    n_aircraft = bs.settings.num_aircraft
+    n_aircraft = pm.num_aircraft
     
     state_per_ac = 8
 

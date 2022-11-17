@@ -22,22 +22,24 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 
+import plugins.parameters as pm
+
 import plugins.SAC.sac_agent as sac
 import plugins.state as st
 import plugins.functions as fn
 import plugins.reward as rw
 
-timestep = 1.5
+timestep = pm.timestep
 state_size, _, _ = fn.get_statesize()
 action_size = 3
 
-onsetperiod = 600 # Number of seconds before experiment starts
+onsetperiod = pm.onsetperiod # Number of seconds before experiment starts
 
-n_aircraft = bs.settings.num_aircraft
+n_aircraft = pm.num_aircraft
 
 # '\\' for windows, '/' for linux or mac
 dir_symbol = '\\'
-model_path = bs.settings.experiment_path + dir_symbol + bs.settings.experiment_name
+model_path = pm.experiment_path + dir_symbol + pm.experiment_name
 
 # Standard way of initializing Plugins in BlueSky
 def init_plugin():
@@ -302,7 +304,7 @@ class Experiment_drl(core.Entity):
                 path = model_path+dir_symbol+"model"
                 Path(path).mkdir(parents=True, exist_ok=True)
 
-            logsavename = bs.settings.experiment_path +dir_symbol+ bs.settings.experiment_name+ dir_symbol+ 'logdata_'+lognumber+'.csv'
+            logsavename = Path(pm.experiment_path +'/'+ pm.experiment_name+ '/'+ 'logdata_'+lognumber+'.csv')
             self.logfile.to_csv(logsavename)
 
             self.agent.save_models()
