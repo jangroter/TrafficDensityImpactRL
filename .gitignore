@@ -7,6 +7,7 @@ data/netcdf
 data/performance/BADA/*
 !/data/performance/BADA/README.md
 
+settings.cfg
 # Sphinx documentation
 docs/_build/
 
