@@ -22,7 +22,7 @@ The goal of this fork is to provide open-source, freely accessible source code a
 
     bluesky/plugins
 
-To see how to enable a certain plugin open the respective file under the plugins folder. To set the traffic density or any other parameter, see the parameters.py file under the plugin folder.
+To see how to enable a certain plugin open the respective file under the plugins folder. To set the traffic density or any other parameter, see the parameters.py file under the plugin folder. This will require a settings.cfg file, this file will be created when running bluesky for the first time.
 
 The experimental scenario spawns aircraft at a pre-set traffic density at different altitude depending on their heading. Some of the aircraft can obtain a new altitude command which requires them to cross through different layers of cruising aircraft. During this activity intrusions or so called losses of separation can occur which is the main variable of interest in this research.
 
