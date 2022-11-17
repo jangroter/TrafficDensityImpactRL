@@ -15,6 +15,8 @@ The goal of BlueSky is to provide everybody who wants to visualize, analyze or s
 traffic with a tool to do so without any restrictions, licenses or limitations. It can be copied,
 modified, cited, etc. without any limitations.
 
+The full version of BlueSky without the plugins used for this project can be found at https://github.com/TUDelft-CNS-ATM/bluesky
+
 **Citation info:** J. M. Hoekstra and J. Ellerbroek, "[BlueSky ATC Simulator Project: an Open Data and Open Source Approach](https://www.researchgate.net/publication/304490055_BlueSky_ATC_Simulator_Project_an_Open_Data_and_Open_Source_Approach)", Proceedings of the seventh International Conference for Research on Air Transport (ICRAT), 2016.
 
 ## This Fork: "Analysing the Impact of Traffic Density on the Efficacy of Reinforcement Learning during Safe Vertical Manouevres."
