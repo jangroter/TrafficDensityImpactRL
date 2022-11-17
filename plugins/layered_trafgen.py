@@ -1,8 +1,9 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Tue Jul 12 15:34:21 2022
+""" traffic generation plugin
+Plugin constantly manages how many aircraft 
+should have been spawned based on the desired traffic 
+density and time that has passed
 
-@author: Jan
+Traffic spawns are randomly generated
 """
 from bluesky import core, stack, traf  #, settings, navdb, sim, scr, tools
 from bluesky.tools.aero import ft, nm, fpm, Rearth, kts
@@ -19,19 +20,19 @@ def get_spawnrate(density,mean_speed):
     return spawnrate
 
 # Default Values
-circlelat = 48.86
-circlelon = 2.37
-circlerad = 1.62 # [NM] 
+circlelat = bs.settings.controlarea_lat
+circlelon = bs.settings.controlarea_lon
+circlerad = bs.settings.controlarea_rad
 
-speed = 20
-density = 25# AC/NM2 
+speed = bs.settings.cruise_speed
+density = bs.settings.traffic_density 
 spawnrate = get_spawnrate(density,speed)
 
-headinglayers = 16
+headinglayers = bs.settings.num_headinglayers
 degreesperheading = 2*(360/headinglayers)
 
-basealtitude = 200
-maxaltitude = 1000
+basealtitude = bs.settings.lower_alt
+maxaltitude = bs.settings.upper_alt
 altperlayer = (maxaltitude - basealtitude)/(headinglayers)
 
 def init_plugin():   

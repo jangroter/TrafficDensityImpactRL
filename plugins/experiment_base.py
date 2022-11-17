@@ -151,7 +151,6 @@ class Experiment_base(core.Entity):
                         if len(self.rewards) == 5000:
                             stack.stack('QUIT')
 
-
     def update_AC_control(self,ac_idx):   
         """ Decide if aircraft is assigned different altitude when entering delivery area.
         Only works if aircraft is in area for the first time"""
