@@ -17,8 +17,23 @@ modified, cited, etc. without any limitations.
 
 **Citation info:** J. M. Hoekstra and J. Ellerbroek, "[BlueSky ATC Simulator Project: an Open Data and Open Source Approach](https://www.researchgate.net/publication/304490055_BlueSky_ATC_Simulator_Project_an_Open_Data_and_Open_Source_Approach)", Proceedings of the seventh International Conference for Research on Air Transport (ICRAT), 2016.
 
-## This branch: "Vertical Conflict Resolution in Layered Airspace
-The goal of this branch is to provide open-source, freely accessible source code and data for reproducing the results of the paper. Currently this section of the readme is a placeholder for when the paper will be officialy released and will contain the abstract as well as additional useful information.
+## This Fork: "Analysing the Impact of Traffic Density on the Efficacy of Reinforcement Learning during Safe Vertical Manouevres."
+The goal of this fork is to provide open-source, freely accessible source code and data for reproducing the results of the paper. To run the experiments and simulations, plugins have been developed, which can be found under:
+
+    bluesky/plugins
+
+To see how to enable a certain plugin open the respective file under the plugins folder. To set the traffic density or any other parameter, see the parameters.py file under the plugin folder.
+
+The experimental scenario spawns aircraft at a pre-set traffic density at different altitude depending on their heading. Some of the aircraft can obtain a new altitude command which requires them to cross through different layers of cruising aircraft. During this activity intrusions or so called losses of separation can occur which is the main variable of interest in this research.
+
+### experiment_base.py
+This is the baseline experiment plugin. When this plugin is enabled, aircraft will directly start flying towards their new altitude without performing any conflict resolution manoeuvres to minimize the number of intrusions. This number of intrusions observed during these experiments provides a control for the other experiments.
+
+### experiment_swo.py
+This file extends on the baseline plugin by adding a shortest way out algorithm for resolving conflicts. This algorithm is based on the Modified Voltage Potential algorithm, an implementation of which can be found under bluesky/asas/MVP.py, however unlike MVP in this implementation only the aircraft that is manoeuvring vertically is responsible for resolving the conflicts. 
+
+### experiment_drl.py & experiment_drl_test.py
+These files extend on the baseline plugin by having the aircraft that have altitude command be controlled by a Deep Reinforcement Learning algorithm. The used algorithm is the Soft Actor Critic (SAC) algorithm. The experiment_drl.py file is enabled when a new model is to be trained based on a reward function that penalizes intrusions, this model is intermittently saved. The experiment_drl_test.py file is enabled to test a trained model without the exploration noise/randomness that is present in the model during training.
 
 ## BlueSky Releases
 BlueSky is also available as a pip package, for which periodically version releases are made. You can find the latest release here:
